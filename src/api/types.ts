@@ -39,6 +39,12 @@ export interface AnimePicturesResponse {
     pictures: AnimePicture[];
 }
 
+export interface RelatedAnimeNode {
+    node: AnimeNode;
+    relation_type: string;
+    relation_type_formatted: string;
+}
+
 export interface RecommendationNode {
     node: AnimeNode;
     num_recommendations: number;

@@ -106,6 +106,7 @@ export class MalApiClient {
     async getAnimeDetails(animeId: number): Promise<{
         pictures: AnimePicturesResponse['pictures'],
         recommendations: AnimeRecommendationsResponse['recommendations'],
+        related_anime: any[], // Using any[] temporarily or defined type if imported
         statistics: AnimeStatistics | null
     }> {
         // We can fetch pictures, recommendations, and statistics in one call using fields
@@ -119,12 +120,13 @@ export class MalApiClient {
 
         try {
             const response = await this.request<any>(`/anime/${animeId}`, {
-                fields: 'pictures,recommendations{node{alternative_titles}},statistics'
+                fields: 'pictures,recommendations{node{alternative_titles}},related_anime{node{alternative_titles},relation_type_formatted},statistics'
             });
 
             return {
                 pictures: response.pictures || [],
                 recommendations: response.recommendations ? response.recommendations.map((r: any) => ({ node: r.node, num_recommendations: r.num_recommendations })) : [],
+                related_anime: response.related_anime ? response.related_anime.map((r: any) => ({ node: r.node, relation_type: r.relation_type, relation_type_formatted: r.relation_type_formatted })) : [],
                 statistics: response.statistics || null
             };
         } catch (e) {

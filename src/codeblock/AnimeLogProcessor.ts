@@ -147,7 +147,46 @@ export class AnimeLogProcessor {
                 });
             }
 
-            // 3. Recommendations
+            // 3. Related Anime
+            if (details.related_anime && details.related_anime.length > 0) {
+                const relatedSection = detailsContainer.createDiv({ cls: 'anime-log-section anime-related' });
+                relatedSection.createEl('h4', { text: '関連アニメ' });
+                const scrollContainer = relatedSection.createDiv({ cls: 'horizontal-scroll-container' });
+
+                details.related_anime.forEach((rel: any) => {
+                    const card = scrollContainer.createDiv({ cls: 'anime-card mini-card' });
+                    const imgUrl = rel.node.main_picture ? rel.node.main_picture.medium : '';
+                    if (imgUrl) {
+                        card.createEl('img', { attr: { src: imgUrl } });
+                    }
+
+                    const title = rel.node.alternative_titles?.ja || rel.node.title;
+                    const relation = rel.relation_type_formatted || rel.relation_type;
+
+                    // Display relation type and title
+                    const infoDiv = card.createDiv({ cls: 'anime-card-info' });
+                    infoDiv.createDiv({ cls: 'anime-card-relation', text: relation });
+                    infoDiv.createDiv({ cls: 'anime-card-title', text: title });
+
+                    card.addEventListener('click', async () => {
+                        const existing = await fileService.getAnimeFile(rel.node.id);
+                        if (existing) {
+                            await fileService.openFile(existing);
+                        } else {
+                            new Notice(`${title} のログを作成中...`);
+                            try {
+                                const newFile = await fileService.createAnimeFile(rel.node);
+                                await fileService.openFile(newFile);
+                            } catch (e) {
+                                new Notice('ファイル作成に失敗しました');
+                                console.error(e);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // 4. Recommendations
             if (details.recommendations && details.recommendations.length > 0) {
                 const recSection = detailsContainer.createDiv({ cls: 'anime-log-section anime-recommendations' });
                 recSection.createEl('h4', { text: 'おすすめアニメ' });
@@ -159,14 +198,6 @@ export class AnimeLogProcessor {
                     if (imgUrl) {
                         card.createEl('img', { attr: { src: imgUrl } });
                     }
-                    // おすすめタイトルも日本語があれば使いたいが、RecommendationNodeの構造による
-                    // RecommendationNode is { node: AnimeNode, num_recommendations: number }
-                    // AnimeNode has alternative_titles optional now.
-                    // API request for details includes recommendations field.
-                    // MAL API for recommendations usually includes minimal node info.
-                    // Let's check if alternative_titles is available in recommendation node from detail endpoint.
-                    // Usually it requires sub-fields request for nested nodes which MAL API often doesn't support deep nesting fields well or default is minimal.
-                    // We will try to use it if available, else title.
 
                     const title = rec.node.alternative_titles?.ja || rec.node.title;
                     card.createDiv({ cls: 'anime-card-title', text: title });
@@ -178,21 +209,7 @@ export class AnimeLogProcessor {
                         } else {
                             new Notice(`${title} のログを作成中...`);
                             // Create file logic:
-                            // Note: rec.node might not have start_date/genres for proper tags if not returned by API
-                            // This depends on MAL API response for nested recommendation nodes.
-                            // If missing, new file will have defaults/empty tags.
-                            // For now we accept this limitation or we can fetch details before create.
-                            // Fetching details is safer for tag quality.
                             try {
-                                // Fetch full details to get correct tags (start_date, genres, ja title)
-                                // We cannot use apiClient here directly to get AnimeNode array...
-                                // But we can use getAnimeDetails.
-                                // Wait, getAnimeDetails returns specific structure, not AnimeNode directly.
-                                // But AnimeFileService.createFile needs AnimeNode.
-                                // We might need a method to get single AnimeNode fully.
-                                // Let's simplify: Just create with what we have.
-                                // User can fix tags later. Or we can just try to fetch seasonal data... no that's hard.
-                                // Let's use the node we have.
                                 const newFile = await fileService.createAnimeFile(rec.node);
                                 await fileService.openFile(newFile);
                             } catch (e) {
