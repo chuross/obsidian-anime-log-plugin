@@ -24,9 +24,17 @@ export default class AnimeLogPlugin extends Plugin {
 
         // Add Ribbon Icon
         this.addRibbonIcon('tv', 'Open Anime Log', (evt: MouseEvent) => {
-            new YearSeasonModal(this.app, (year, season) => {
-                this.openAnimeGrid(year, season);
-            }).open();
+            new YearSeasonModal(
+                this.app,
+                (year, season) => {
+                    this.openAnimeGrid(year, season);
+                },
+                (query) => {
+                    new AnimeGridModal(this.app, 0, '', this.apiClient, async (anime) => {
+                        await this.handleAnimeSelection(anime);
+                    }, query).open();
+                }
+            ).open();
         });
 
         // Add Command
@@ -34,9 +42,19 @@ export default class AnimeLogPlugin extends Plugin {
             id: 'open-anime-log-modal',
             name: 'Open Anime Selection Modal',
             callback: () => {
-                new YearSeasonModal(this.app, (year, season) => {
-                    this.openAnimeGrid(year, season);
-                }).open();
+                const onAnimeSelect = async (anime: AnimeNode) => {
+                    await this.handleAnimeSelection(anime);
+                };
+
+                new YearSeasonModal(
+                    this.app,
+                    (year: number, season: string) => {
+                        new AnimeGridModal(this.app, year, season, this.apiClient, onAnimeSelect).open();
+                    },
+                    (query: string) => {
+                        new AnimeGridModal(this.app, 0, '', this.apiClient, onAnimeSelect, query).open();
+                    }
+                ).open();
             }
         });
     }

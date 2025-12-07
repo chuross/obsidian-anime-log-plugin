@@ -4,10 +4,12 @@ export class YearSeasonModal extends Modal {
     year: number;
     season: string;
     onSubmit: (year: number, season: string) => void;
+    onSearch: (query: string) => void;
 
-    constructor(app: App, onSubmit: (year: number, season: string) => void) {
+    constructor(app: App, onSubmit: (year: number, season: string) => void, onSearch: (query: string) => void) {
         super(app);
         this.onSubmit = onSubmit;
+        this.onSearch = onSearch;
         const currentYear = new Date().getFullYear();
         this.year = currentYear;
         this.season = ''; // Default: unspecified (年間)
@@ -25,6 +27,30 @@ export class YearSeasonModal extends Modal {
             { value: 'summer', label: '夏 (7-9月)' },
             { value: 'fall', label: '秋 (10-12月)' }
         ];
+
+        // Search Section
+        contentEl.createEl('h3', { text: 'キーワード検索' });
+        let searchQuery = '';
+        const searchSetting = new Setting(contentEl)
+            .setName('アニメ検索')
+            .setDesc('タイトルなどで検索できます')
+            .addText(text => text
+                .setPlaceholder('タイトルを入力...')
+                .onChange(async (value) => {
+                    searchQuery = value;
+                }));
+
+        searchSetting.addButton(btn => btn
+            .setButtonText('検索')
+            .onClick(() => {
+                if (searchQuery) {
+                    this.close();
+                    this.onSearch(searchQuery);
+                }
+            }));
+
+        contentEl.createEl('hr');
+        contentEl.createEl('h3', { text: '放送時期から探す' });
 
         new Setting(contentEl)
             .setName('年')

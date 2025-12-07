@@ -5,17 +5,19 @@ import { AnimeNode } from '../api/types';
 export class AnimeGridModal extends Modal {
     year: number;
     season: string;
+    searchQuery?: string;
     apiClient: MalApiClient;
     animeList: AnimeNode[] = [];
     currentSort: string = 'anime_num_list_users'; // Default popularity
     onAnimeSelect: (anime: AnimeNode) => void;
 
-    constructor(app: App, year: number, season: string, apiClient: MalApiClient, onAnimeSelect: (anime: AnimeNode) => void) {
+    constructor(app: App, year: number, season: string, apiClient: MalApiClient, onAnimeSelect: (anime: AnimeNode) => void, searchQuery?: string) {
         super(app);
         this.year = year;
         this.season = season;
         this.apiClient = apiClient;
         this.onAnimeSelect = onAnimeSelect;
+        this.searchQuery = searchQuery;
     }
 
     async onOpen() {
@@ -34,16 +36,35 @@ export class AnimeGridModal extends Modal {
         backButton.setText('← 戻る');
         backButton.addEventListener('click', () => {
             this.close();
-            // Re-open YearSeasonModal
+            // Re-open YearSeasonModal (Need to import dynamically to avoid circular dependency if any, though here it's fine)
+            // But we need the callback logic again.
+            // Since we don't have easy access to the original callbacks from here to pass back to YearSeasonModal...
+            // Wait, we can construct YearSeasonModal again but we need to pass the same callbacks that main.ts passed.
+            // But we don't have them stored.
+            // A simple way is to pass a "onBack" callback to AnimeGridModal?
+            // Or just re-instantiate YearSeasonModal with the same logic as main.ts?
+            // Let's assume the callbacks are consistently:
+            // onSubmit: (y, s) => new AnimeGridModal(app, y, s, client, onSelect).open()
+            // onSearch: (q) => new AnimeGridModal(app, 0, '', client, onSelect, q).open()
+            // We can replicate this.
+
             const { YearSeasonModal } = require('./YearSeasonModal');
-            new YearSeasonModal(this.app, (year: number, season: string) => {
-                new AnimeGridModal(this.app, year, season, this.apiClient, this.onAnimeSelect).open();
-            }).open();
+            new YearSeasonModal(
+                this.app,
+                (year: number, season: string) => {
+                    new AnimeGridModal(this.app, year, season, this.apiClient, this.onAnimeSelect).open();
+                },
+                (query: string) => {
+                    new AnimeGridModal(this.app, 0, '', this.apiClient, this.onAnimeSelect, query).open();
+                }
+            ).open();
         });
 
         // Title
         let headerTitle: string;
-        if (this.season) {
+        if (this.searchQuery) {
+            headerTitle = `"${this.searchQuery}" の検索結果`;
+        } else if (this.season) {
             const seasonJa = this.season === 'winter' ? '冬' : this.season === 'spring' ? '春' : this.season === 'summer' ? '夏' : '秋';
             headerTitle = `${this.year}年 ${seasonJa}アニメ`;
         } else {
@@ -84,7 +105,9 @@ export class AnimeGridModal extends Modal {
         gridContainer.empty();
 
         try {
-            if (this.season) {
+            if (this.searchQuery) {
+                this.animeList = await this.apiClient.searchAnime(this.searchQuery);
+            } else if (this.season) {
                 this.animeList = await this.apiClient.getSeasonalAnime(this.year, this.season, this.currentSort);
             } else {
                 this.animeList = await this.apiClient.getYearlyAnime(this.year, this.currentSort);

@@ -1,7 +1,7 @@
 {
     "id": "obsidian-anime-log-plugin",
     "name": "Anime Log",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "minAppVersion": "0.15.0",
     "description": "Log your anime watch list using MyAnimeList API.",
     "author": "chuross",

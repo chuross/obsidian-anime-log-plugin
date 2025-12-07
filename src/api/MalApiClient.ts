@@ -134,4 +134,18 @@ export class MalApiClient {
             throw e;
         }
     }
+
+    async searchAnime(query: string, limit: number = 50): Promise<AnimeNode[]> {
+        try {
+            const response = await this.request<SeasonalAnimeResponse>('/anime', {
+                q: query,
+                limit: limit,
+                fields: 'alternative_titles,mean,popularity,media_type,status,start_date,genres,num_list_users'
+            });
+            return response.data.map(item => item.node);
+        } catch (e) {
+            console.error('Failed to search anime', e);
+            return [];
+        }
+    }
 }
