@@ -73,16 +73,13 @@ export class AnimeLogProcessor {
 
         dropdown.onChange(async (newStatus) => {
             const file = app.vault.getAbstractFileByPath(ctx.sourcePath);
-            if (file && 'read' in file) {
+            // TFile判定: TFileには extension プロパティがある
+            if (file && 'extension' in file) {
                 const content = await app.vault.read(file as any);
-                // 改善された正規表現: statusの後の空白や改行に対応
                 const newContent = content.replace(/(```animeLog\s*\n)([\s\S]*?)(\n```)/, (match, prefix, body, suffix) => {
                     if (body.includes('status:')) {
-                        // status: の行を置換
                         return `${prefix}${body.replace(/status:\s*.*/, `status: ${newStatus}`)}${suffix}`;
                     }
-                    // statusがない場合は末尾に追加
-                    // 末尾に改行があるかチェックして適切に追加
                     const newBody = body.trimEnd() + `\nstatus: ${newStatus}`;
                     return `${prefix}${newBody}${suffix}`;
                 });
@@ -90,7 +87,12 @@ export class AnimeLogProcessor {
                 if (newContent !== content) {
                     await app.vault.modify(file as any, newContent);
                     new Notice('ステータスを更新しました');
+                } else {
+                    new Notice('DEBUG: 正規表現がマッチしませんでした');
+                    console.log('Content:', content.substring(0, 500));
                 }
+            } else {
+                new Notice(`DEBUG: TFile not found. file=${file}, path=${ctx.sourcePath}`);
             }
         });
 
