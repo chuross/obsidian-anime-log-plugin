@@ -10,7 +10,7 @@ export class YearSeasonModal extends Modal {
         this.onSubmit = onSubmit;
         const currentYear = new Date().getFullYear();
         this.year = currentYear;
-        this.season = 'spring'; // Default
+        this.season = ''; // Default: unspecified (年間)
     }
 
     onOpen() {
@@ -25,13 +25,6 @@ export class YearSeasonModal extends Modal {
             { value: 'summer', label: '夏 (7-9月)' },
             { value: 'fall', label: '秋 (10-12月)' }
         ];
-
-        // Determine current season default
-        const currentMonth = new Date().getMonth() + 1;
-        if (currentMonth >= 1 && currentMonth <= 3) this.season = 'winter';
-        else if (currentMonth >= 4 && currentMonth <= 6) this.season = 'spring';
-        else if (currentMonth >= 7 && currentMonth <= 9) this.season = 'summer';
-        else this.season = 'fall';
 
         new Setting(contentEl)
             .setName('年')
