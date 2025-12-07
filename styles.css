@@ -124,10 +124,10 @@
 }
 
 .horizontal-scroll-container img {
-    width: 200px;
-    height: auto;
+    width: auto;
+    height: 250px;
     border-radius: 4px;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 /* Statistics Grid */
