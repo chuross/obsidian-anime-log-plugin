@@ -2,17 +2,20 @@ import { Plugin, WorkspaceLeaf } from 'obsidian';
 import { YearSeasonModal } from './ui/YearSeasonModal';
 import { AnimeGridModal } from './ui/AnimeGridModal';
 import { MalApiClient } from './api/MalApiClient';
+import { JikanApiClient } from './api/JikanApiClient';
 import { AnimeFileService } from './services/AnimeFileService';
 import { AnimeLogProcessor } from './codeblock/AnimeLogProcessor';
 import { AnimeNode } from './api/types';
 
 export default class AnimeLogPlugin extends Plugin {
     apiClient: MalApiClient;
+    jikanApiClient: JikanApiClient;
     fileService: AnimeFileService;
 
     async onload() {
         this.apiClient = new MalApiClient();
-        this.fileService = new AnimeFileService(this.app);
+        this.jikanApiClient = new JikanApiClient();
+        this.fileService = new AnimeFileService(this.app, this.jikanApiClient);
 
         // Register Code Block Processor
         this.registerMarkdownCodeBlockProcessor('animeLog', (source, el, ctx) => {

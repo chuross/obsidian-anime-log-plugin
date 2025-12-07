@@ -1,14 +1,17 @@
 import { App, TFile, requestUrl, normalizePath, Notice } from 'obsidian';
 import { AnimeNode } from '../api/types';
+import { JikanApiClient } from '../api/JikanApiClient';
 
 const ANIME_LOG_DIR = 'animelog';
 const ATTACHMENTS_DIR = 'attachments/anime';
 
 export class AnimeFileService {
     app: App;
+    jikanApiClient: JikanApiClient;
 
-    constructor(app: App) {
+    constructor(app: App, jikanApiClient: JikanApiClient) {
         this.app = app;
+        this.jikanApiClient = jikanApiClient;
     }
 
     async getAnimeFile(animeId: number): Promise<TFile | null> {
@@ -48,9 +51,21 @@ export class AnimeFileService {
             });
         }
 
-        // Thumbnail with width specification using HTML img tag
+        // Fetch external links using Jikan API
+        let externalLinksContent = '';
+        try {
+            const links = await this.jikanApiClient.getAnimeExternalLinks(anime.id);
+            if (links.length > 0) {
+                const linkLines = links.map((l: { name: string; url: string }) => `- [${l.name}](${l.url})`);
+                externalLinksContent = `\n## 外部リンク\n${linkLines.join('\n')}\n`;
+            }
+        } catch (e) {
+            console.error('Failed to add external links', e);
+        }
+
+        // Thumbnail with width specification using HTML img tag, wrapped in uneditable div
         const thumbnailEmbed = thumbnailPath
-            ? `<img src="${thumbnailPath}" alt="${displayTitle}" width="300" />`
+            ? `<div contenteditable="false"><img src="${thumbnailPath}" alt="${displayTitle}" width="300" /></div>`
             : '';
 
         const content = `---
@@ -68,7 +83,7 @@ ${thumbnailEmbed}
 mal_id: ${anime.id}
 status: plan_to_watch
 \`\`\`
-
+${externalLinksContent}
 `;
 
         const file = await this.app.vault.create(fileName, content);

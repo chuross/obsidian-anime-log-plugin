@@ -120,7 +120,12 @@ export class AnimeLogProcessor {
                 const createStatItem = (label: string, val: string) => {
                     const item = grid.createDiv({ cls: 'anime-stat-item' });
                     item.createDiv({ cls: 'label', text: label });
-                    item.createDiv({ cls: 'value', text: val });
+                    // Provide comma separation if the value is a number string
+                    let displayVal = val;
+                    if (!isNaN(Number(val))) {
+                        displayVal = Number(val).toLocaleString();
+                    }
+                    item.createDiv({ cls: 'value', text: displayVal });
                 };
 
                 createStatItem('視聴中', stats.status.watching);
