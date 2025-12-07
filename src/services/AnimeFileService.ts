@@ -65,6 +65,7 @@ ${thumbnailEmbed}
 # ${displayTitle}
 
 \`\`\`animeLog
+mal_id: ${anime.id}
 status: plan_to_watch
 \`\`\`
 

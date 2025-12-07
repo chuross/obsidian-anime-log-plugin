@@ -16,17 +16,25 @@ export class AnimeLogProcessor {
             return;
         }
 
-        // Get Anime ID from Frontmatter
-        let animeId = null;
-        const cache = app.metadataCache.getCache(ctx.sourcePath);
-        if (cache && cache.frontmatter && cache.frontmatter.mal_id) {
-            animeId = cache.frontmatter.mal_id;
-        } else {
-            // Fallback: Read file directly if cache is not ready (e.g. immediately after creation)
+        // Get Anime ID
+        // 1. Check code block params (most robust)
+        let animeId = params.mal_id;
+
+        // 2. Check Metadata Cache
+        if (!animeId) {
+            const cache = app.metadataCache.getCache(ctx.sourcePath);
+            if (cache && cache.frontmatter && cache.frontmatter.mal_id) {
+                animeId = cache.frontmatter.mal_id;
+            }
+        }
+
+        // 3. Fallback: Read file directly
+        if (!animeId) {
             const file = app.vault.getAbstractFileByPath(ctx.sourcePath);
             if (file && 'read' in file) {
                 const content = await app.vault.read(file as any);
-                const match = content.match(/^mal_id:\s*(\d+)/m);
+                // Regex to find mal_id in frontmatter (relaxed)
+                const match = content.match(/mal_id:\s*(\d+)/);
                 if (match) {
                     animeId = parseInt(match[1]);
                 }
@@ -34,14 +42,9 @@ export class AnimeLogProcessor {
         }
 
         if (!animeId) {
-            container.createEl('div', { text: 'FrontmatterにAnime IDが見つかりません。', cls: 'error' });
-            // リトライボタンを表示してもいいかもしれない
-            const btn = container.createEl('button', { text: '再読み込み' });
+            container.createEl('div', { text: `Error: Anime ID not found. (Path: ${ctx.sourcePath})`, cls: 'error' });
+            const btn = container.createEl('button', { text: 'Reload' });
             btn.onclick = () => {
-                // 本当はProcessorを再実行させたいが、簡易的にリロードを促すか、もう一度処理を走らせる
-                // ここではシンプルにNoticeを出すのみにするか、
-                // 再度 postProcess を呼ぶのは引数的に面倒なので、この場ではコンテナをクリアして処理続行を試みる手もあるが、
-                // 非同期なのでそのまま呼び直すのが手っ取り早いかもしれないが、staticメソッド呼び出しでいける。
                 container.empty();
                 AnimeLogProcessor.postProcess(source, el, ctx, app, apiClient, fileService);
             };
