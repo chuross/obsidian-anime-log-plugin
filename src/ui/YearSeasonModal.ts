@@ -19,6 +19,7 @@ export class YearSeasonModal extends Modal {
         contentEl.createEl('h2', { text: '放送時期を選択' });
 
         const seasons = [
+            { value: '', label: '指定なし (年間)' },
             { value: 'winter', label: '冬 (1-3月)' },
             { value: 'spring', label: '春 (4-6月)' },
             { value: 'summer', label: '夏 (7-9月)' },

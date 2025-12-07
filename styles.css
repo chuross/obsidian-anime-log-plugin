@@ -182,12 +182,6 @@ body.is-mobile .anime-grid-container {
     gap: 10px;
 }
 
-@media (max-width: 400px) {
-    body.is-mobile .anime-grid-container {
-        grid-template-columns: 1fr;
-    }
-}
-
 body.is-mobile .anime-grid-header {
     flex-direction: column;
     align-items: flex-start;
@@ -210,4 +204,39 @@ body.is-mobile .anime-log-container {
 body.is-mobile .horizontal-scroll-container img {
     height: 180px;
     /* Smaller images on mobile */
+}
+
+/* Disable image zoom on mobile */
+body.is-mobile .anime-card-image-container img {
+    pointer-events: none;
+}
+
+body.is-mobile .anime-card:hover {
+    transform: none;
+}
+
+/* Back button and title container */
+.anime-grid-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.anime-grid-title-container h2 {
+    margin: 0;
+}
+
+.anime-grid-back-button {
+    background-color: var(--background-modifier-border);
+    border: none;
+    border-radius: 4px;
+    color: var(--text-normal);
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.anime-grid-back-button:hover {
+    background-color: var(--background-modifier-border-hover);
 }

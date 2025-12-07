@@ -25,9 +25,31 @@ export class AnimeGridModal extends Modal {
 
         // Header with controls
         const headerDiv = contentEl.createDiv({ cls: 'anime-grid-header' });
-        const seasonJa = this.season === 'winter' ? '冬' : this.season === 'spring' ? '春' : this.season === 'summer' ? '夏' : '秋';
 
-        headerDiv.createEl('h2', { text: `${this.year}年 ${seasonJa}アニメ` });
+        // Back button and title container
+        const titleContainer = headerDiv.createDiv({ cls: 'anime-grid-title-container' });
+
+        // Back button
+        const backButton = titleContainer.createEl('button', { cls: 'anime-grid-back-button' });
+        backButton.setText('← 戻る');
+        backButton.addEventListener('click', () => {
+            this.close();
+            // Re-open YearSeasonModal
+            const { YearSeasonModal } = require('./YearSeasonModal');
+            new YearSeasonModal(this.app, (year: number, season: string) => {
+                new AnimeGridModal(this.app, year, season, this.apiClient, this.onAnimeSelect).open();
+            }).open();
+        });
+
+        // Title
+        let headerTitle: string;
+        if (this.season) {
+            const seasonJa = this.season === 'winter' ? '冬' : this.season === 'spring' ? '春' : this.season === 'summer' ? '夏' : '秋';
+            headerTitle = `${this.year}年 ${seasonJa}アニメ`;
+        } else {
+            headerTitle = `${this.year}年 アニメ`;
+        }
+        titleContainer.createEl('h2', { text: headerTitle });
 
         const controlsDiv = headerDiv.createDiv({ cls: 'anime-grid-controls' });
 
@@ -62,10 +84,14 @@ export class AnimeGridModal extends Modal {
         gridContainer.empty();
 
         try {
-            this.animeList = await this.apiClient.getSeasonalAnime(this.year, this.season, this.currentSort);
+            if (this.season) {
+                this.animeList = await this.apiClient.getSeasonalAnime(this.year, this.season, this.currentSort);
+            } else {
+                this.animeList = await this.apiClient.getYearlyAnime(this.year, this.currentSort);
+            }
 
             if (this.animeList.length === 0) {
-                gridContainer.createDiv({ text: 'このシーズンのアニメは見つかりませんでした。' });
+                gridContainer.createDiv({ text: 'アニメは見つかりませんでした。' });
                 return;
             }
 

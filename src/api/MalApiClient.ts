@@ -62,6 +62,47 @@ export class MalApiClient {
         return animeList;
     }
 
+    async getYearlyAnime(year: number, sort: string = 'anime_num_list_users'): Promise<AnimeNode[]> {
+        const seasons = ['winter', 'spring', 'summer', 'fall'];
+        const allAnime: AnimeNode[] = [];
+        const seenIds = new Set<number>();
+
+        for (const season of seasons) {
+            try {
+                const animeList = await this.getSeasonalAnime(year, season, sort);
+                for (const anime of animeList) {
+                    if (!seenIds.has(anime.id)) {
+                        seenIds.add(anime.id);
+                        allAnime.push(anime);
+                    }
+                }
+            } catch (e) {
+                console.error(`Failed to fetch ${season} season for ${year}`, e);
+            }
+        }
+
+        // Re-sort the combined list
+        if (sort === 'anime_num_list_users') {
+            allAnime.sort((a, b) => (b.num_list_users || 0) - (a.num_list_users || 0));
+        } else if (sort === 'anime_score') {
+            allAnime.sort((a, b) => (b.mean || 0) - (a.mean || 0));
+        } else if (sort === 'start_date_desc') {
+            allAnime.sort((a, b) => {
+                const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
+                const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
+                return dateB - dateA;
+            });
+        } else if (sort === 'start_date_asc') {
+            allAnime.sort((a, b) => {
+                const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
+                const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
+                return dateA - dateB;
+            });
+        }
+
+        return allAnime;
+    }
+
     async getAnimeDetails(animeId: number): Promise<{
         pictures: AnimePicturesResponse['pictures'],
         recommendations: AnimeRecommendationsResponse['recommendations'],
