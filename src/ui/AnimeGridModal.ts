@@ -93,7 +93,7 @@ export class AnimeGridModal extends Modal {
                 const title = card.createDiv({ cls: 'anime-card-title', text: displayTitle });
 
                 // Click event
-                card.onClickEvent(() => {
+                card.addEventListener('click', () => {
                     this.close();
                     this.onAnimeSelect(anime);
                 });

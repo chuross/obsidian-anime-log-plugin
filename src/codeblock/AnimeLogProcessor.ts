@@ -166,7 +166,7 @@ export class AnimeLogProcessor {
                     const title = rec.node.alternative_titles?.ja || rec.node.title;
                     card.createDiv({ cls: 'anime-card-title', text: title });
 
-                    card.onClickEvent(async () => {
+                    card.addEventListener('click', async () => {
                         const existing = await fileService.getAnimeFile(rec.node.id);
                         if (existing) {
                             await fileService.openFile(existing);
