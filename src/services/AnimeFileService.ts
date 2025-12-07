@@ -21,9 +21,9 @@ export class AnimeFileService {
     async createAnimeFile(anime: AnimeNode): Promise<TFile> {
         await this.ensureDirectory(ANIME_LOG_DIR);
 
-        const sanitizedTitle = this.sanitizeFileName(anime.title);
-        // Use English title if available and safe, but API returns 'title' which is mostly romaji or english based on request,
-        // MAL API default is usually Romaji. 
+        // Prefer Japanese title, fallback to default title
+        const displayTitle = anime.alternative_titles?.ja || anime.title;
+        const sanitizedTitle = this.sanitizeFileName(displayTitle);
         const fileName = `${ANIME_LOG_DIR}/${anime.id}_${sanitizedTitle}.md`;
 
         let thumbnailPath = '';
@@ -33,31 +33,36 @@ export class AnimeFileService {
         }
 
         const tags = [
-            'anime_log',
-            `anime_log/${this.getYear(anime.start_date)}`,
+            'animelog',
+            `animelog_${this.getYear(anime.start_date)}`,
         ];
 
         const season = this.getSeason(anime.start_date);
         if (season) {
-            tags.push(`anime_log/${this.getYear(anime.start_date)}/${season}`);
+            tags.push(`animelog_${this.getYear(anime.start_date)}_${season}`);
         }
 
         if (anime.genres) {
             anime.genres.forEach(g => {
-                tags.push(`anime_log/${this.sanitizeTag(g.name)}`);
+                tags.push(`animelog_${this.sanitizeTag(g.name)}`);
             });
         }
 
+        // Thumbnail with width specification using HTML img tag
+        const thumbnailEmbed = thumbnailPath
+            ? `<img src="${thumbnailPath}" alt="${displayTitle}" width="300" />`
+            : '';
+
         const content = `---
 mal_id: ${anime.id}
-title: "${anime.title}"
+title: "${displayTitle}"
 tags:
 ${tags.map(t => `  - ${t}`).join('\n')}
 ---
 
-![[${thumbnailPath}]]
+${thumbnailEmbed}
 
-# ${anime.title}
+# ${displayTitle}
 
 \`\`\`animeLog
 status: plan_to_watch

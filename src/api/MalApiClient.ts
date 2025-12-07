@@ -39,7 +39,7 @@ export class MalApiClient {
             sort: sort === 'start_date' ? undefined : sort, // start_date is not supported by API directly for sorting in this endpoint effectively usually, but we fallback to API if possible or handle locally.
             // Actually, for season, API supports anime_score, anime_num_list_users.
             // We will request basic fields needed for grid.
-            fields: 'mean,popularity,media_type,status,test,start_date,genres,num_list_users'
+            fields: 'alternative_titles,mean,popularity,media_type,status,start_date,genres,num_list_users'
         });
 
         let animeList = response.data.map(item => item.node);
