@@ -25,17 +25,19 @@ export class AnimeGridModal extends Modal {
 
         // Header with controls
         const headerDiv = contentEl.createDiv({ cls: 'anime-grid-header' });
-        headerDiv.createEl('h2', { text: `${this.year} ${this.season.charAt(0).toUpperCase() + this.season.slice(1)} Anime` });
+        const seasonJa = this.season === 'winter' ? '冬' : this.season === 'spring' ? '春' : this.season === 'summer' ? '夏' : '秋';
+
+        headerDiv.createEl('h2', { text: `${this.year}年 ${seasonJa}アニメ` });
 
         const controlsDiv = headerDiv.createDiv({ cls: 'anime-grid-controls' });
 
         // Sort Dropdown
         const sortSelect = controlsDiv.createEl('select');
         const sortOptions = [
-            { value: 'anime_num_list_users', label: 'Most Popular' },
-            { value: 'anime_score', label: 'Highest Score' },
-            { value: 'start_date_desc', label: 'Start Date (Newest)' }, // Client side
-            { value: 'start_date_asc', label: 'Start Date (Oldest)' }, // Client side
+            { value: 'anime_num_list_users', label: '人気順' },
+            { value: 'anime_score', label: 'スコア順' },
+            { value: 'start_date_desc', label: '放送日 (新しい順)' },
+            { value: 'start_date_asc', label: '放送日 (古い順)' },
         ];
         sortOptions.forEach(opt => {
             const el = sortSelect.createEl('option', { value: opt.value, text: opt.label });
@@ -49,7 +51,7 @@ export class AnimeGridModal extends Modal {
         };
 
         // Loading Indicator
-        const loadingEl = contentEl.createDiv({ text: 'Loading anime data...', cls: 'anime-loading' });
+        const loadingEl = contentEl.createDiv({ text: 'アニメデータを読み込み中...', cls: 'anime-loading' });
 
         await this.loadAnime();
         loadingEl.remove();
@@ -63,7 +65,7 @@ export class AnimeGridModal extends Modal {
             this.animeList = await this.apiClient.getSeasonalAnime(this.year, this.season, this.currentSort);
 
             if (this.animeList.length === 0) {
-                gridContainer.createDiv({ text: 'No anime found for this season.' });
+                gridContainer.createDiv({ text: 'このシーズンのアニメは見つかりませんでした。' });
                 return;
             }
 
@@ -86,8 +88,9 @@ export class AnimeGridModal extends Modal {
                     });
                 }
 
-                // Title
-                const title = card.createDiv({ cls: 'anime-card-title', text: anime.title });
+                // Title - Prefer Japanese
+                const displayTitle = anime.alternative_titles?.ja || anime.title;
+                const title = card.createDiv({ cls: 'anime-card-title', text: displayTitle });
 
                 // Click event
                 card.onClickEvent(() => {

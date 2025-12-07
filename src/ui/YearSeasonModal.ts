@@ -16,13 +16,13 @@ export class YearSeasonModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        contentEl.createEl('h2', { text: 'Select Anime Season' });
+        contentEl.createEl('h2', { text: '放送時期を選択' });
 
         const seasons = [
-            { value: 'winter', label: 'Winter (1-3)' },
-            { value: 'spring', label: 'Spring (4-6)' },
-            { value: 'summer', label: 'Summer (7-9)' },
-            { value: 'fall', label: 'Fall (10-12)' }
+            { value: 'winter', label: '冬 (1-3月)' },
+            { value: 'spring', label: '春 (4-6月)' },
+            { value: 'summer', label: '夏 (7-9月)' },
+            { value: 'fall', label: '秋 (10-12月)' }
         ];
 
         // Determine current season default
@@ -33,8 +33,8 @@ export class YearSeasonModal extends Modal {
         else this.season = 'fall';
 
         new Setting(contentEl)
-            .setName('Year')
-            .setDesc('Select the broadcast year (1990 - Next Year)')
+            .setName('年')
+            .setDesc('放送年を選択 (1990年〜)')
             .addDropdown(dropdown => {
                 const currentYear = new Date().getFullYear();
                 for (let y = currentYear + 1; y >= 1990; y--) {
@@ -47,8 +47,8 @@ export class YearSeasonModal extends Modal {
             });
 
         new Setting(contentEl)
-            .setName('Season')
-            .setDesc('Select the broadcast season')
+            .setName('季節')
+            .setDesc('放送季節を選択')
             .addDropdown(dropdown => {
                 seasons.forEach(s => dropdown.addOption(s.value, s.label));
                 dropdown.setValue(this.season);
@@ -59,7 +59,7 @@ export class YearSeasonModal extends Modal {
 
         new Setting(contentEl)
             .addButton(btn => btn
-                .setButtonText('Show Anime')
+                .setButtonText('アニメを表示')
                 .setCta()
                 .onClick(() => {
                     this.close();
