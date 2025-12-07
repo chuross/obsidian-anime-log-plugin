@@ -41,8 +41,14 @@ export class AnimeFileService {
         ];
 
         const season = this.getSeason(anime.start_date);
+        let yearSeason = '';
         if (season) {
             tags.push(`animelog_${this.getYear(anime.start_date)}_${season}`);
+
+            // Generate year_season property
+            const year = this.getYear(anime.start_date);
+            const seasonJa = season === 'winter' ? '冬' : season === 'spring' ? '春' : season === 'summer' ? '夏' : '秋';
+            yearSeason = `${year}年(${seasonJa})`;
         }
 
         if (anime.genres) {
@@ -68,10 +74,12 @@ export class AnimeFileService {
             ? `<div contenteditable="false"><img src="${thumbnailPath}" alt="${displayTitle}" width="300" /></div>`
             : '';
 
+        const yearSeasonProp = yearSeason ? `year_season: "${yearSeason}"\n` : '';
+
         const content = `---
 mal_id: ${anime.id}
 title: "${displayTitle}"
-tags:
+${yearSeasonProp}tags:
 ${tags.map(t => `  - ${t}`).join('\n')}
 ---
 
@@ -87,6 +95,10 @@ ${externalLinksContent}
 `;
 
         const file = await this.app.vault.create(fileName, content);
+
+        // Cleanup unused attachments
+        this.cleanupAttachments();
+
         return file;
     }
 
@@ -149,5 +161,50 @@ ${externalLinksContent}
         if (month >= 7 && month <= 9) return 'summer';
         if (month >= 10 && month <= 12) return 'fall';
         return null;
+    }
+
+    private async cleanupAttachments() {
+        try {
+            // 1. Get all anime log files and extract valid IDs
+            const markdownFiles = this.app.vault.getMarkdownFiles();
+            const validIds = new Set<string>();
+
+            markdownFiles.forEach(file => {
+                // Check if file is in animelog directory (optional, but safer)
+                if (file.path.startsWith(ANIME_LOG_DIR)) {
+                    // Extract ID from filename: {ID}_Title.md
+                    // Assuming filename format: 12345_SomeTitle.md
+                    const match = file.basename.match(/^(\d+)_/);
+                    if (match) {
+                        validIds.add(match[1]);
+                    }
+                }
+            });
+
+            // 2. Get all images in attachment directory
+            const attachmentFolder = this.app.vault.getAbstractFileByPath(ATTACHMENTS_DIR);
+            if (attachmentFolder && 'children' in attachmentFolder) {
+                // casting to TFolder-like or checking children directly
+                const images = (attachmentFolder as any).children;
+
+                for (const img of images) {
+                    if (img instanceof TFile) {
+                        // Check filename: {ID}_thumbnail.ext
+                        const match = img.name.match(/^(\d+)_thumbnail\./);
+                        if (match) {
+                            const id = match[1];
+                            // If ID is not in validIds, delete it
+                            if (!validIds.has(id)) {
+                                console.log(`Deleting unused thumbnail: ${img.path}`);
+                                await this.app.vault.delete(img);
+                            }
+                        }
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.error('Failed to cleanup attachments', e);
+        }
     }
 }
