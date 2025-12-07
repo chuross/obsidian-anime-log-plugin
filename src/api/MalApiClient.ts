@@ -78,7 +78,7 @@ export class MalApiClient {
 
         try {
             const response = await this.request<any>(`/anime/${animeId}`, {
-                fields: 'pictures,recommendations,statistics'
+                fields: 'pictures,recommendations{node{alternative_titles}},statistics'
             });
 
             return {
