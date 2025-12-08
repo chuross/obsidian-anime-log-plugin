@@ -221,14 +221,24 @@ export class AnimeLogProcessor {
                 });
             }
             // 5. External Links
-            if (details.external && details.external.length > 0) {
+            try {
                 const extSection = detailsContainer.createDiv({ cls: 'anime-log-section anime-external' });
                 extSection.createEl('h4', { text: '外部リンク' });
                 const linkList = extSection.createEl('ul');
-                details.external.forEach(link => {
-                    const li = linkList.createEl('li');
-                    li.createEl('a', { text: link.name, href: link.url });
+
+                // Fetch links asynchronously
+                fileService.jikanApiClient.getAnimeExternalLinks(animeId).then(links => {
+                    if (links && links.length > 0) {
+                        links.forEach(link => {
+                            const li = linkList.createEl('li');
+                            li.createEl('a', { text: link.name, href: link.url });
+                        });
+                    } else {
+                        extSection.remove(); // Remove section if no links found
+                    }
                 });
+            } catch (e) {
+                console.error('Failed to load external links', e);
             }
 
             // 6. Search Streaming Site Button
