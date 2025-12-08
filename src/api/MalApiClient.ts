@@ -107,7 +107,8 @@ export class MalApiClient {
         pictures: AnimePicturesResponse['pictures'],
         recommendations: AnimeRecommendationsResponse['recommendations'],
         related_anime: any[], // Using any[] temporarily or defined type if imported
-        statistics: AnimeStatistics | null
+        statistics: AnimeStatistics | null,
+        external?: { name: string; url: string }[]
     }> {
         // We can fetch pictures, recommendations, and statistics in one call using fields
         // However, `statistics` might be a separate structure or part of main node info?
@@ -120,14 +121,15 @@ export class MalApiClient {
 
         try {
             const response = await this.request<any>(`/anime/${animeId}`, {
-                fields: 'pictures,recommendations{node{alternative_titles}},related_anime{node{alternative_titles},relation_type_formatted},statistics'
+                fields: 'pictures,recommendations{node{alternative_titles}},related_anime{node{alternative_titles},relation_type_formatted},statistics,external'
             });
 
             return {
                 pictures: response.pictures || [],
                 recommendations: response.recommendations ? response.recommendations.map((r: any) => ({ node: r.node, num_recommendations: r.num_recommendations })) : [],
                 related_anime: response.related_anime ? response.related_anime.map((r: any) => ({ node: r.node, relation_type: r.relation_type, relation_type_formatted: r.relation_type_formatted })) : [],
-                statistics: response.statistics || null
+                statistics: response.statistics || null,
+                external: response.external
             };
         } catch (e) {
             console.error("Failed to fetch details", e);
@@ -140,7 +142,7 @@ export class MalApiClient {
             const response = await this.request<SeasonalAnimeResponse>('/anime', {
                 q: query,
                 limit: limit,
-                fields: 'alternative_titles,mean,popularity,media_type,status,start_date,genres,num_list_users'
+                fields: 'alternative_titles,mean,popularity,media_type,status,start_date,genres,num_list_users,external'
             });
             return response.data.map(item => item.node);
         } catch (e) {

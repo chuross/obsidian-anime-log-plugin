@@ -19,6 +19,7 @@ export interface AnimeNode {
     start_date?: string;
     end_date?: string;
     genres?: { id: number; name: string }[];
+    external?: { name: string; url: string }[];
 }
 
 export interface SeasonalAnimeResponse {

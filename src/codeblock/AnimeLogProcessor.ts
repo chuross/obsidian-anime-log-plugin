@@ -220,6 +220,53 @@ export class AnimeLogProcessor {
                     });
                 });
             }
+            // 5. External Links
+            if (details.external && details.external.length > 0) {
+                const extSection = detailsContainer.createDiv({ cls: 'anime-log-section anime-external' });
+                extSection.createEl('h4', { text: '外部リンク' });
+                const linkList = extSection.createEl('ul');
+                details.external.forEach(link => {
+                    const li = linkList.createEl('li');
+                    li.createEl('a', { text: link.name, href: link.url });
+                });
+            }
+
+            // 6. Search Streaming Site Button
+            // Use japanese title if available, else standard title
+            // We need to fetch basic info again or pass it? 
+            // Actually getAnimeDetails returns a lot but not the title directly in the top level object if it's not requested or if we are just using what's returned.
+            // But we have `animeId` and we can probably assume we want to search using the title we can get.
+            // Wait, `getAnimeDetails` return structure doesn't include title.
+            // We should use `params` or `app.metadataCache` to get title or just request it in `getAnimeDetails`.
+            // Let's modify `getAnimeDetails` to return main node info or just rely on the fact that we might not have the title easily available here without another call or passing it.
+            // BUT, looking at `AnimeLogProcessor.ts`, we don't have the title variable readily available from `postProcess` arguments except if we read the file.
+            // We parsed `animeId`. We can read the file frontmatter again to get the title, or `params` might have it if `title` is in frontmatter.
+            // Let's look at how `postProcess` gets data. It gets `animeId`.
+            // Requesting title in `getAnimeDetails` is robust.
+
+            // Let's add title to `getAnimeDetails` return.
+            // Wait, I didn't add `title` and `alternative_titles` to `getAnimeDetails` in previous step.
+            // I should have. Let's fix `getAnimeDetails` first or just redundant fetch? 
+            // No, redundant fetch is bad.
+            // I'll assume I can get title from `ctx` or file cache.
+
+            let searchTitle = '';
+            const file = app.vault.getAbstractFileByPath(ctx.sourcePath);
+            if (file && 'extension' in file) { // TFile check
+                const cache = app.metadataCache.getFileCache(file as any);
+                if (cache && cache.frontmatter) {
+                    searchTitle = cache.frontmatter.title_ja || cache.frontmatter.title || '';
+                }
+            }
+
+            if (searchTitle) {
+                const btnContainer = detailsContainer.createDiv({ cls: 'anime-streaming-search' });
+                const btn = new ButtonComponent(btnContainer)
+                    .setButtonText('配信サイトを探す')
+                    .onClick(() => {
+                        window.open(`https://filmarks.com/search/animes?q=${encodeURIComponent(searchTitle)}`, '_blank');
+                    });
+            }
 
         } catch (err) {
             detailsContainer.setText('詳細情報の読み込みに失敗しました。');

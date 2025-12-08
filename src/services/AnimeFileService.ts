@@ -57,17 +57,8 @@ export class AnimeFileService {
             });
         }
 
-        // Fetch external links using Jikan API
-        let externalLinksContent = '';
-        try {
-            const links = await this.jikanApiClient.getAnimeExternalLinks(anime.id);
-            if (links.length > 0) {
-                const linkLines = links.map((l: { name: string; url: string }) => `- [${l.name}](${l.url})`);
-                externalLinksContent = `\n## 外部リンク\n${linkLines.join('\n')}\n`;
-            }
-        } catch (e) {
-            console.error('Failed to add external links', e);
-        }
+        // External links are now handled dynamically in the code block processor
+
 
         // Thumbnail with width specification using HTML img tag, wrapped in uneditable div
         const thumbnailEmbed = thumbnailPath
@@ -91,7 +82,6 @@ ${thumbnailEmbed}
 mal_id: ${anime.id}
 status: plan_to_watch
 \`\`\`
-${externalLinksContent}
 `;
 
         const file = await this.app.vault.create(fileName, content);

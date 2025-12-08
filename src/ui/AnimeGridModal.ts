@@ -8,7 +8,7 @@ export class AnimeGridModal extends Modal {
     searchQuery?: string;
     apiClient: MalApiClient;
     animeList: AnimeNode[] = [];
-    currentSort: string = 'anime_num_list_users'; // Default popularity
+    currentSort: string = 'anime_score'; // Default to score
     onAnimeSelect: (anime: AnimeNode) => void;
 
     constructor(app: App, year: number, season: string, apiClient: MalApiClient, onAnimeSelect: (anime: AnimeNode) => void, searchQuery?: string) {
