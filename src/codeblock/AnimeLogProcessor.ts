@@ -108,6 +108,13 @@ export class AnimeLogProcessor {
             detailsContainer.removeClass('anime-log-details-loading');
             detailsContainer.addClass('anime-log-details');
 
+            // 0. Episode Count
+            if (details.num_episodes && details.num_episodes > 0) {
+                const epSection = detailsContainer.createDiv({ cls: 'anime-log-section anime-episodes' });
+                epSection.createEl('h4', { text: 'エピソード数' });
+                epSection.createDiv({ text: `全${details.num_episodes}話` });
+            }
+
             // 1. Statistics
             if (details.statistics) {
                 const statBox = detailsContainer.createDiv({ cls: 'anime-log-section anime-stats' });

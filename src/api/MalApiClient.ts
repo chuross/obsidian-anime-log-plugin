@@ -107,7 +107,8 @@ export class MalApiClient {
         pictures: AnimePicturesResponse['pictures'],
         recommendations: AnimeRecommendationsResponse['recommendations'],
         related_anime: any[], // Using any[] temporarily or defined type if imported
-        statistics: AnimeStatistics | null
+        statistics: AnimeStatistics | null,
+        num_episodes: number
     }> {
         // We can fetch pictures, recommendations, and statistics in one call using fields
         // However, `statistics` might be a separate structure or part of main node info?
@@ -120,14 +121,15 @@ export class MalApiClient {
 
         try {
             const response = await this.request<any>(`/anime/${animeId}`, {
-                fields: 'pictures,recommendations{node{alternative_titles}},related_anime{node{alternative_titles},relation_type_formatted},statistics'
+                fields: 'pictures,recommendations{node{alternative_titles}},related_anime{node{alternative_titles},relation_type_formatted},statistics,num_episodes'
             });
 
             return {
                 pictures: response.pictures || [],
                 recommendations: response.recommendations ? response.recommendations.map((r: any) => ({ node: r.node, num_recommendations: r.num_recommendations })) : [],
                 related_anime: response.related_anime ? response.related_anime.map((r: any) => ({ node: r.node, relation_type: r.relation_type, relation_type_formatted: r.relation_type_formatted })) : [],
-                statistics: response.statistics || null
+                statistics: response.statistics || null,
+                num_episodes: response.num_episodes || 0
             };
         } catch (e) {
             console.error("Failed to fetch details", e);

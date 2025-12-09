@@ -16,6 +16,7 @@ export interface AnimeNode {
     media_type?: string;
     status?: string;
     num_list_users?: number;
+    num_episodes?: number;
     start_date?: string;
     end_date?: string;
     genres?: { id: number; name: string }[];
