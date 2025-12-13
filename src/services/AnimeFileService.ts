@@ -59,10 +59,9 @@ export class AnimeFileService {
 
         // External links are now handled dynamically in the code block processor
 
-
-        // Thumbnail with width specification using HTML img tag, wrapped in uneditable div
+        // Thumbnail with width specification using Obsidian markdown syntax
         const thumbnailEmbed = thumbnailPath
-            ? `<div contenteditable="false"><img src="${thumbnailPath}" alt="${displayTitle}" width="300" /></div>`
+            ? `![[${thumbnailPath}|300]]`
             : '';
 
         const yearSeasonProp = yearSeason ? `year_season: "${yearSeason}"\n` : '';
